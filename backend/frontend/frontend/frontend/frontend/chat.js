@@ -1,18 +1,20 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js";
 
-export const supabase = createClient(
+const supabase = createClient(
   "https://euzmecqnozwwrjiaqggt.supabase.co",
   "sb_publishable_wQpw5zl350Zoj4AtkK5waA_s-I50Wbl"
 );
 
 let currentChatId = null;
-let userId = "test-user-123"; // временно
+let userId = "test-user-123";
 let subscription = null;
 
 // Загружаем список чатов
 async function loadChats() {
-  const res = await fetch("http://localhost:3000/chat/list");
-  const chats = await res.json();
+  const { data: chats } = await supabase
+    .from("chats")
+    .select("*")
+    .order("created_at", { ascending: false });
 
   const chatList = document.getElementById("chatList");
   chatList.innerHTML = "";
@@ -30,14 +32,15 @@ async function loadChats() {
 async function openChat(chatId) {
   currentChatId = chatId;
 
-  // Если была старая подписка — отключаем
   if (subscription) {
     supabase.removeChannel(subscription);
   }
 
-  // Загружаем историю сообщений
-  const res = await fetch(`http://localhost:3000/chat/${chatId}/messages`);
-  const messages = await res.json();
+  const { data: messages } = await supabase
+    .from("messages")
+    .select("*")
+    .eq("chat_id", chatId)
+    .order("created_at", { ascending: true });
 
   const messageList = document.getElementById("messageList");
   messageList.innerHTML = "";
@@ -51,4 +54,47 @@ async function openChat(chatId) {
 
   messageList.scrollTop = messageList.scrollHeight;
 
-  // ⚡ REAL-TIME ПОДПИСКА НА НОВЫЕ СООБЩЕНИЯ
+  // Real-time
+  subscription = supabase
+    .channel("messages")
+    .on(
+      "postgres_changes",
+      {
+        event: "INSERT",
+        schema: "public",
+        table: "messages",
+        filter: `chat_id=eq.${chatId}`
+      },
+      (payload) => {
+        const msg = payload.new;
+
+        const div = document.createElement("div");
+        div.className = "msg";
+        div.innerText = msg.text;
+
+        messageList.appendChild(div);
+        messageList.scrollTop = messageList.scrollHeight;
+      }
+    )
+    .subscribe();
+}
+
+// Отправить сообщение
+async function sendMessage() {
+  if (!currentChatId) return alert("Выберите чат!");
+
+  const text = document.getElementById("msgInput").value;
+  if (!text.trim()) return;
+
+  await supabase.from("messages").insert([
+    {
+      chat_id: currentChatId,
+      user_id: userId,
+      text
+    }
+  ]);
+
+  document.getElementById("msgInput").value = "";
+}
+
+loadChats();
