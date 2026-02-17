@@ -1,23 +1,18 @@
-import express from "express";
-import cors from "cors";
-import "./db.js";
+const express = require("express");
+const mongoose = require("mongoose");
+const cors = require("cors");
 
-// Routes
-import authRoutes from "./routes/auth.js";
-import userRoutes from "./routes/user.js";
-import chatRoutes from "./routes/chat.js";
-import messageRoutes from "./routes/message.js";
+const authRoutes = require("./authRoutes");
 
 const app = express();
-
-app.use(cors());
 app.use(express.json());
+app.use(cors());
 
-// Use routes
+mongoose.connect("mongodb+srv://...твой_коннект...", {
+  useNewUrlParser: true,
+  useUnifiedTopology: true
+});
+
 app.use("/auth", authRoutes);
-app.use("/user", userRoutes);
-app.use("/chat", chatRoutes);
-app.use("/message", messageRoutes);
 
-const PORT = process.env.PORT || 3001;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.listen(3000, () => console.log("Server running"));
