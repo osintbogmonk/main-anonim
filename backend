@@ -1,8 +1,1 @@
-backend
-├─ package.json
-├─ server.js
-├─ db.js
-├─ models
-│  └─ User.js
-├─ routes
-│  └─ auth.js
+
