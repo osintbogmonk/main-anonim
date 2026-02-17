@@ -1,8 +1,12 @@
 import mongoose from "mongoose";
 
-mongoose.connect(process.env.MONGO_URL, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-})
+mongoose.connect(
+  "mongodb+srv://lorenzorenaissance_db_user:ТВОЙ_ПАРОЛЬ@cluster0.nrqjc6m.mongodb.net/?appName=Cluster0",
+  {
+    useNewUrlParser: true,
+    useUnifiedTopology: true
+  }
+)
 .then(() => console.log("MongoDB connected"))
 .catch(err => console.error("MongoDB error:", err));
+
