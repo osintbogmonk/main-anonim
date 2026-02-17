@@ -1,5 +1,13 @@
+import { createClient } from "https://esm.sh/@supabase/supabase-js";
+
+export const supabase = createClient(
+  "https://euzmecqnozwwrjiaqggt.supabase.co",
+  "sb_publishable_wQpw5zl350Zoj4AtkK5waA_s-I50Wbl"
+);
+
 let currentChatId = null;
 let userId = "test-user-123"; // временно
+let subscription = null;
 
 // Загружаем список чатов
 async function loadChats() {
@@ -22,6 +30,12 @@ async function loadChats() {
 async function openChat(chatId) {
   currentChatId = chatId;
 
+  // Если была старая подписка — отключаем
+  if (subscription) {
+    supabase.removeChannel(subscription);
+  }
+
+  // Загружаем историю сообщений
   const res = await fetch(`http://localhost:3000/chat/${chatId}/messages`);
   const messages = await res.json();
 
@@ -36,26 +50,5 @@ async function openChat(chatId) {
   });
 
   messageList.scrollTop = messageList.scrollHeight;
-}
 
-// Отправить сообщение
-async function sendMessage() {
-  if (!currentChatId) return alert("Выберите чат!");
-
-  const text = document.getElementById("msgInput").value;
-  if (!text.trim()) return;
-
-  await fetch(`http://localhost:3000/chat/${currentChatId}/send`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      user_id: userId,
-      text
-    })
-  });
-
-  document.getElementById("msgInput").value = "";
-  openChat(currentChatId);
-}
-
-loadChats();
+  // ⚡ REAL-TIME ПОДПИСКА НА НОВЫЕ СООБЩЕНИЯ
