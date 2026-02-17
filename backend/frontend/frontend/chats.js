@@ -1,8 +1,16 @@
 async function loadChats() {
   const token = localStorage.getItem("token");
 
+  if (!token) {
+    alert("Вы не авторизованы");
+    window.location.href = "index.html";
+    return;
+  }
+
   const res = await fetch("https://main-anonim.onrender.com/chat", {
-    headers: { Authorization: "Bearer " + token }
+    headers: {
+      Authorization: "Bearer " + token
+    }
   });
 
   const data = await res.json();
@@ -14,9 +22,14 @@ async function loadChats() {
     return;
   }
 
-  container.innerHTML = data.length
-    ? data.map(c => `<p>Чат: ${c._id}</p>`).join("")
-    : "Чатов нет";
+  if (data.length === 0) {
+    container.innerHTML = "Чатов пока нет";
+    return;
+  }
+
+  container.innerHTML = data
+    .map(chat => `<p>Чат ID: ${chat._id}</p>`)
+    .join("");
 }
 
 loadChats();
