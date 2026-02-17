@@ -19,4 +19,4 @@ app.use("/auth", authRouter);
 
 app.listen(PORT, () => {
   console.log(`Server started on port ${PORT}`);
-});
+}); 
